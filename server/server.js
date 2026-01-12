@@ -3,7 +3,8 @@ dotenv.config()
 import express from 'express'
 import cors from 'cors'
 import http from 'http'
-import Server from 'socket.io'
+import {Server} from 'socket.io'
+import connectDB from './db/conn.js'
 
 
 
@@ -28,6 +29,9 @@ app.use(cors({
 }))
 app.use(express.json())
 
+//connecting to db
+connectDB()
+
 const port = process.env.PORT || 3000;
 
 app.get('/',(req,res)=>{
@@ -36,7 +40,7 @@ app.get('/',(req,res)=>{
 })
 
 server.listen(port,()=>{
-    console.log("serer workingggg");
+    console.log("Connected to Server......");
     
 })
 
