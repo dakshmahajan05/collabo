@@ -16,8 +16,24 @@ const UserSchema = new mongoose.Schema({
         required:true
     },
     resetOtp:{
-        type:String,
+        type:Number,
         default:null,
+    },
+    loginOtp:{
+        type:Number,
+        default:null
+    },
+    registerOtp:{
+        type:Number,
+        default:null
+    },
+    isVerified:{
+        type:Boolean,
+        default:false
+    },
+    otpExpiresAt:{
+        type:Number,
+        default:0
     },
     squads:[{
         type:mongoose.Schema.Types.ObjectId,
