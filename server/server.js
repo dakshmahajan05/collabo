@@ -5,6 +5,9 @@ import cors from 'cors'
 import http from 'http'
 import {Server} from 'socket.io'
 import connectDB from './db/conn.js'
+import cookieParser from 'cookie-parser'
+import authrouter from './routes/auth.routes.js'
+
 
 
 
@@ -28,6 +31,10 @@ app.use(cors({
     origin:"*"
 }))
 app.use(express.json())
+app.use(cookieParser())
+
+//auth routes
+app.use('/api/auth',authrouter)
 
 //connecting to db
 connectDB()
