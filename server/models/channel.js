@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { MongooseError } from "mongoose";
 
 const ChannelSchema = new mongoose.Schema({
     name:{
@@ -13,6 +13,10 @@ const ChannelSchema = new mongoose.Schema({
         type:String,
         enum:["text","post"],
         default:"text"
+    },
+    owner:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"User"
     }
 },{timestamps:true})
 

@@ -9,6 +9,7 @@ authrouter.post('/register',register)
 authrouter.post('/verifyRegisterOtp',verifyRegisterOtp)
 authrouter.post('/login',login)
 authrouter.post('/verifyLoginOtp' ,verifyLoginOtp)
+
 authrouter.post('/resetPassOtp',resetPassOtp)
 authrouter.post('/resetPass',resetPass)
 authrouter.post('/resendOtp',resendOtp)

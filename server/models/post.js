@@ -19,9 +19,16 @@ const PostSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"Channel",
         required:true
+    },
+    attachments:[
+        {
+        type:String,
+        default:''
     }
+]
 },{timestamps:true})
 
+PostSchema.index({ channelId: 1, createdAt: -1 });
 
-const Post = new mongoose.model("Post",PostSchema)
+const Post = mongoose.model("Post",PostSchema)
 export default Post

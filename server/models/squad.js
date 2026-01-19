@@ -10,7 +10,7 @@ const SquadSchema = new mongoose.Schema({
        {
 
         user:{
-            type:mongoose.Types.ObjectId,
+            type:mongoose.Schema.Types.ObjectId,
             ref:"User"
         },
         role:{
@@ -39,6 +39,14 @@ const SquadSchema = new mongoose.Schema({
     description:{
         type:String,
         default:""
+    },
+    squadImage:{
+        type:String,
+        default:'',
+    },
+    isPrivate:{
+        type:Boolean,
+        default:false
     }
 },{timestamps:true})
 

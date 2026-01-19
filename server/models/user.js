@@ -3,28 +3,30 @@ import Squad from "./squad.js";
 const UserSchema = new mongoose.Schema({
     name:{
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     email:{
         type:String,
         required:true,
         unique:true,
-        lowercase:true
+        lowercase:true,
+        trim:true
     },
     password:{
         type:String,
         required:true
     },
     resetOtp:{
-        type:Number,
+        type:String,
         default:null,
     },
     loginOtp:{
-        type:Number,
+        type:String,
         default:null
     },
     registerOtp:{
-        type:Number,
+        type:String,
         default:null
     },
     isVerified:{
@@ -39,10 +41,33 @@ const UserSchema = new mongoose.Schema({
         type:mongoose.Schema.Types.ObjectId,
         ref:"Squad"
         
-    }]
+    }],
+    profilePic:{
+        type:String,
+        default:'',
+    },
+    socialLinks:{
+        github:{
+            type:String,
+            default:''
+        },
+        linkedIn:{
+            type:String,
+            default:''
+        }
+    },
+    skills:{
+        type:[String],
+        default:[]
+    },
+    bio:{
+        type:String,
+        default:''
+    }
 },{timestamps:true})
 
-
+UserSchema.index({ email: 1 });
+UserSchema.index({ skills: 1 });
 
 const User = mongoose.model("User",UserSchema)
 

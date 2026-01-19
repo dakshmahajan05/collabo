@@ -17,7 +17,8 @@ const server = http.createServer(app)
 
 const io = new Server(server,{
     cors:{
-        origin:"*"
+        origin:"*",
+        credentials:true
     }
 })
 io.on("connection",(socket)=>{
@@ -28,7 +29,8 @@ io.on("connection",(socket)=>{
     })
 })
 app.use(cors({
-    origin:"*"
+    origin:"http://localhost:5173",
+    credentials:true
 }))
 app.use(express.json())
 app.use(cookieParser())
@@ -43,11 +45,12 @@ const port = process.env.PORT || 3000;
 
 app.get('/',(req,res)=>{
     console.log("server live......");
+    res.send("server worlinggg")
     
 })
 
 server.listen(port,()=>{
-    console.log("Connected to Server......");
+    console.log("server running on port: ",port);
     
 })
 

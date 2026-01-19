@@ -41,9 +41,7 @@ export const register = async(req,res)=>{
         await user.save();
 
         console.log("mail sent for registering user");
-        
-
-        return res.status(200).json({message:"user registered sucessfully",success:true})
+        return res.status(200).json({message:"email sent for verifying user registration",success:true})
     } catch (error) {
         console.log(error);
         return res.status(400).json({message:"err while registering user",success:false})
@@ -79,7 +77,7 @@ export const verifyRegisterOtp = async(req,res)=>{
         await user.save();
 
 
-        return res.status(200).json({message:"user verified success",success:true});
+        return res.status(200).json({message:"user verified successfully",success:true});
     } catch (error) {
         console.log(error.message);
         return res.status(400).json({message:"err while verifying user registeration otp",success:false,error})
@@ -223,7 +221,7 @@ export const resetPass= async(req,res)=>{
         if(user.otpExpiresAt<Date.now()){
             return res.status(400).json({message:"otp expired",success:false});
         }
-        if(otp!==user.resetOtp){
+        if(otp!=user.resetOtp){
             return res.status(400).json({message:"otp mismatched ",success:false})
         }
 
