@@ -21,8 +21,16 @@ const io = new Server(server,{
         credentials:true
     }
 })
+// creating connection 
 io.on("connection",(socket)=>{
     console.log("a new user connected",socket.id);
+// creating channel
+
+    socket.on("joinChannel",(channelId)=>{
+        socket.join(channelId)
+        console.log("a user connected ",channelId);
+        
+    })
     
     socket.on("disconnect",()=>{
         console.log("user disconnected")
@@ -53,4 +61,6 @@ server.listen(port,()=>{
     console.log("server running on port: ",port);
     
 })
+
+export {io}
 
