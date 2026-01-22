@@ -5,6 +5,8 @@ import crypto from "crypto";
 import Post from "../models/post.js";
 import { log } from "console";
 import { io } from "../server.js";
+
+
 export const createSquad = async(req,res)=>{
     try {
         const {name,description,userId} = req.body;
@@ -104,3 +106,95 @@ export const getSquadData = async(req,res)=>{
     }
 }
 
+export const leaveSquad = async(req,res)=>{
+    try {
+        const {squadId,userId} = req.body
+
+        const squad = await Squad.findById(squadId)
+
+        if(!squad){
+            return res.status(400).json({message:"mo such squad exists",success:false});
+        }
+
+        if(squad.owner.toString()==userId){
+            return res.status(400).json({message:"owner cant leave squad..make any else leader",success:false})
+        }
+
+        await User.findByIdAndUpdate(userId,{
+            $pull:{squads:squadId}
+        })
+
+        await Squad.findByIdAndUpdate(squadId,{
+            $pull:{members:{user:userId} }
+        })
+
+        return res.status(200).json({message:"squad leaved succesfully",success:true})
+
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({message:"unable to delete squad",success:false,error:error.message})
+        
+    }
+}
+
+export const transferOwnership = async(req,res)=>{
+    try {
+        const {squadId, newOwnerId , ownerId} = req.body;
+
+        const squad = await Squad.findById(squadId);
+
+        if(!squad){
+            return res.status(400).json({message:"no such squad exists",sucess:false})
+        }
+
+        if(squad.owner.toString()!==ownerId){
+            return res.status(400).json({message:"this is not the owner of this squad",success:false});
+        }
+
+        if(!squad.members.some(m=>m.user.toString()===newOwnerId)){
+            return res.status(400).json({message:"the new leader must be the member of squad",success:false})
+        }
+       squad.owner=newOwnerId;
+
+       squad.members.forEach(member=>{
+        if(member.user.toString()==ownerId){
+            member.role='admin'
+        }
+       })
+
+        await squad.save()
+       return res.status(200).json({message:"transfered ownership ",sucess:true,squad})
+    } catch (error) {
+        return res.status(400).json({message:"failed to transfer ownership ",success:false})
+    }
+}
+
+export const deleteSquad = async(req,res)=>{
+    try {
+        const {userId,squadId} = req.body;
+
+        const squad = await Squad.findById(squadId);
+        if(!squad){
+            return res.status(400).json({message:"no such squad exists",success:false});
+        }
+
+        if(squad.owner.toString()!==userId){
+            return res.status(400).json({message:"this person is not the owner of squad so he cant delete it",success:false})
+        }
+
+        //delete reference from channel
+        await Channel.deleteMany({squadId})
+        //update use ids 
+        await User.updateMany({squads:squadId},{
+            $pull:{squads:squadId}
+        })
+        
+        await Squad.deleteOne(squadId)
+        
+        return res.status(200).json({message:"squad deleted succesfully",success:true})
+
+    } catch (error) {
+        return res.status(400).json({message:"failed to delete squad ",success:false})
+        
+    }
+}
