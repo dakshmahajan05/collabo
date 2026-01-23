@@ -5,6 +5,7 @@ import crypto from "crypto";
 import Post from "../models/post.js";
 import { log } from "console";
 import { io } from "../server.js";
+import { stat } from "fs";
 
 
 export const createSquad = async(req,res)=>{
@@ -157,7 +158,7 @@ export const transferOwnership = async(req,res)=>{
        squad.owner=newOwnerId;
 
        squad.members.forEach(member=>{
-        if(member.user.toString()==ownerId){
+        if(member.user.toString()==ownerId || member.user.toString()==newOwnerId){
             member.role='admin'
         }
        })
@@ -189,12 +190,103 @@ export const deleteSquad = async(req,res)=>{
             $pull:{squads:squadId}
         })
         
-        await Squad.deleteOne(squadId)
+        await Squad.findByIdAndDelete(squadId)
         
         return res.status(200).json({message:"squad deleted succesfully",success:true})
 
     } catch (error) {
         return res.status(400).json({message:"failed to delete squad ",success:false})
         
+    }
+}
+
+
+export const updateSquad = async(req,res)=>{
+    try {
+        const {squadId, name, description ,userId, squadImage} = req.body;
+
+        const squad = await Squad.findById(squadId)
+
+        if(!squad){
+            return res.status(400).json({message:"no such squad exists",success:false})
+        }
+
+      const isAuthorized =  squad.owner.toString()===userId || squad.members.some(m=>m.user.toString()==userId && m.role==='admin')
+        
+        if(!isAuthorized){
+            return res.status(400).json({message:"the person is not authorized to update squad details",success:false})
+        }
+        squad.name=name;
+        squad.description=description;
+        squad.squadImage=squadImage;
+        await squad.save();
+
+        return res.status(200).json({message:"squad detauils updated",success:true,squad})
+
+
+
+    } catch (error) {
+        return res.status(400).json({message:"squad detauils updaion failed",success:false})
+        
+    }
+}
+
+export const kickMember = async (req, res) => {
+    try {
+        const { userId, squadId, memberId } = req.body;
+        const squad = await Squad.findById(squadId);
+        
+        if (!squad) {
+            return res.status(404).json({ message: "Squad not found", success: false });
+        }
+
+        const isRequesterOwner = squad.owner.toString() === userId;
+        const isRequesterAdmin = squad.members.some(m => m.user.toString() === userId && m.role === 'admin');
+
+        if (!isRequesterOwner && !isRequesterAdmin) {
+            return res.status(403).json({ message: "this prsn is not authorized to remove someone else", success: false });
+        }
+
+        const targetMember = squad.members.find(m => m.user.toString() === memberId);
+        if (!targetMember) {
+             return res.status(404).json({ message: "this prsn doesn't belong to squad", success: false });
+        }
+
+        if (isRequesterAdmin && targetMember.role === 'admin') {
+            return res.status(403).json({ message: "one admin cant remove another", success: false });
+        }
+
+        await Squad.findByIdAndUpdate(squadId, {
+            $pull: { members: { user: memberId } }
+        });
+
+        await User.findByIdAndUpdate(memberId, {
+            $pull: { squads: squadId }
+        });
+        
+        return res.status(200).json({ message: "member removed from the squad succesfully", success: true });
+    
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Failed to kick member", success: false, error: error.message });
+    }
+}
+
+export const getUserSquads = async(req,res)=>{
+    try {
+        const {userId} = req.body;
+
+        const user = await User.findById(userId).populate({
+            path:"squads",
+            select:"name description squadImage members"
+        });
+        if(!user){
+            return res.status(400).json({message:"no such user exists",success:false})
+        }
+
+        return res.status(200).json({message:"squads found succesfully",success:true,squads:user.squads})
+
+    } catch (error) {
+        return res.status(400).json({message:"failed tp fetch squads",success:false})
     }
 }
