@@ -31,6 +31,10 @@ io.on("connection",(socket)=>{
         console.log("a user connected ",channelId);
         
     })
+    socket.on("joinSquadRoom",(squadId)=>{
+        socket.join(squadId);
+        console.log("user joined squad",squadId);
+    })
     
     socket.on("disconnect",()=>{
         console.log("user disconnected")

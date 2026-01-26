@@ -6,6 +6,8 @@ import Post from "../models/post.js";
 import { log } from "console";
 import { io } from "../server.js";
 import { stat } from "fs";
+import path from "path";
+import uploadOnCloudinary from "../utils/cloudinary.js";
 
 
 export const createSquad = async(req,res)=>{
@@ -14,6 +16,17 @@ export const createSquad = async(req,res)=>{
         if(!name){
             return res.status(400).json({message:"no name entered",success:false})
         }
+        let squadImageUrl= "";
+        const localfilepath = req.file?.path;
+
+        if (localfilepath){
+            const cloudinaryResponse = await uploadOnCloudinary(localfilepath) 
+            squadImageUrl = cloudinaryResponse?.secure_url ||  ""
+        }
+
+
+
+
         const inviteCode = crypto.randomBytes(3).toString('hex').toUpperCase();
         //created a new squad;
 
@@ -22,7 +35,8 @@ export const createSquad = async(req,res)=>{
             name,
             description,
             members:[{user:userId,role:'admin'}],
-            inviteCode
+            inviteCode,
+            squadImage:squadImageUrl
         })
 
         const savedSquad =await newSquad.save();
@@ -46,6 +60,11 @@ export const createSquad = async(req,res)=>{
 
         await User.findByIdAndUpdate(userId,{
             $push:{squads:savedSquad._id}
+        })
+
+        io.to(userId).emit("squadCreated",{
+            message:"new squad created",
+            squad:savedSquad
         })
         return res.status(200).json({message:"new squad created and a general channel created",success:true,squad:savedSquad,channel:savedChannel})
 
@@ -203,8 +222,9 @@ export const deleteSquad = async(req,res)=>{
 
 export const updateSquad = async(req,res)=>{
     try {
-        const {squadId, name, description ,userId, squadImage} = req.body;
+        const {squadId, name, description ,userId} = req.body;
 
+       
         const squad = await Squad.findById(squadId)
 
         if(!squad){
@@ -216,15 +236,26 @@ export const updateSquad = async(req,res)=>{
         if(!isAuthorized){
             return res.status(400).json({message:"the person is not authorized to update squad details",success:false})
         }
-        squad.name=name;
-        squad.description=description;
-        squad.squadImage=squadImage;
+
+        let newSquadImage=""
+        const localfilepath = req.file?.path;
+        if(localfilepath){
+            const cloudinaryResponse = await uploadOnCloudinary(localfilepath) || ""
+            if(cloudinaryResponse){
+                squad.squadImage=cloudinaryResponse.secure_url;
+            }
+        }
+
+        squad.name=name || squad.name;
+        squad.description=description || squad.description;
         await squad.save();
+        
+        io.to(squadId).emit("squadUpdated",{
+            message:"squad details have been updataed",
+            squad:  squad
+        })
 
         return res.status(200).json({message:"squad detauils updated",success:true,squad})
-
-
-
     } catch (error) {
         return res.status(400).json({message:"squad detauils updaion failed",success:false})
         
