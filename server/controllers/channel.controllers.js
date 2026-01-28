@@ -32,6 +32,7 @@ export const createChannel = async (req,res)=>{
             description:description || "",
             squadId,
             owner:userId,
+            users:[userId]
 
         })
         await newChannel.save()
@@ -54,15 +55,17 @@ export const createChannel = async (req,res)=>{
 
 export const getSquadChannels = async(req,res)=>{
     try {
-        const {squadId} = req.body;
+        const {squadId,userId} = req.body;
 
         const squad = await Squad.exists({_id:squadId})
 
         if(!squad){
-            return res.status(400).json({message:"no such squad exists",sucess:false})
+            return res.status(400).json({message:"no such squad exists",success:false})
         }
 
-        const channels  = await Channel.find({squadId}).sort({createdAt:1})
+        const channels  = await Channel.find({squadId,$or:[
+            {type:"text"},{users:userId}
+        ]}).sort({createdAt:1})
         
 
         return res.status(200).json({message:"all channels fetched",channels,success:true})

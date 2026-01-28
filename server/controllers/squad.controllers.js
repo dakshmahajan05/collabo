@@ -24,9 +24,6 @@ export const createSquad = async(req,res)=>{
             squadImageUrl = cloudinaryResponse?.secure_url ||  ""
         }
 
-
-
-
         const inviteCode = crypto.randomBytes(3).toString('hex').toUpperCase();
         //created a new squad;
 
@@ -47,7 +44,8 @@ export const createSquad = async(req,res)=>{
             name:"general",
             squadId:savedSquad._id,
             type:"text",
-            owner:userId
+            owner:userId,
+            users:[userId]
         })  
         const savedChannel = await defaultChannel.save();
 
@@ -148,6 +146,10 @@ export const leaveSquad = async(req,res)=>{
             $pull:{members:{user:userId} }
         })
 
+        await Channel.updateMany(
+            {squadId:squadId},
+            {$pull:{users:userId}}
+        )
         return res.status(200).json({message:"squad leaved succesfully",success:true})
 
     } catch (error) {
@@ -183,7 +185,7 @@ export const transferOwnership = async(req,res)=>{
        })
 
         await squad.save()
-       return res.status(200).json({message:"transfered ownership ",sucess:true,squad})
+       return res.status(200).json({message:"transfered ownership ",success:true,squad})
     } catch (error) {
         return res.status(400).json({message:"failed to transfer ownership ",success:false})
     }
@@ -294,6 +296,10 @@ export const kickMember = async (req, res) => {
         await User.findByIdAndUpdate(memberId, {
             $pull: { squads: squadId }
         });
+        await Channel.updateMany(
+            {squadId:squadId},
+            {$pull:{users:memberId}}
+        )
         
         return res.status(200).json({ message: "member removed from the squad succesfully", success: true });
     
