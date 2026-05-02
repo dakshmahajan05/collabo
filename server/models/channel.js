@@ -7,7 +7,7 @@ const ChannelSchema = new mongoose.Schema({
         trim: true
     },
     description: { 
-        type: String,
+         type : String , 
         default: ""
     },
     squadId: {
@@ -17,6 +17,7 @@ const ChannelSchema = new mongoose.Schema({
     },
     type: {
         type: String,
+        //use an enum for options 
         enum: ["text", "post"], // Text for chat, Post for feed-like feel
         default: "text"
     },
@@ -37,6 +38,8 @@ const ChannelSchema = new mongoose.Schema({
 });
 
 // Virtual Populate: Ye bina database load badhaye .populate("messages") ko support karega
+//populate to inter check the schema 
+
 ChannelSchema.virtual('messages', {
     ref: 'Post',             // Post model se data aayega
     localField: '_id',       // Channel ki apni ID

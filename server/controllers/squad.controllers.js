@@ -12,11 +12,15 @@ import uploadOnCloudinary from "../utils/cloudinary.js";
 
 export const createSquad = async(req,res)=>{
     try {
+
+        //info gathering 
+
         const {name,description,userId} = req.body;
         if(!name){
             return res.status(400).json({message:"no name entered",success:false})
         }
         let squadImageUrl= "";
+        //multer ads file path locally 
         const localfilepath = req.file?.path;
 
         if (localfilepath){
@@ -325,5 +329,43 @@ export const getUserSquads = async(req,res)=>{
 
     } catch (error) {
         return res.status(400).json({message:"failed tp fetch squads",success:false})
+    }
+}
+
+export const joinSquadByCode = async(req,res)=>{
+    try {
+        const { code, userId } = req.body; // squadId ki zaroorat nahi hai agar code hai
+
+        const squad = await Squad.findOne({ inviteCode: code });
+        
+        if (!squad) {
+            return res.status(404).json({ message: "wrong code", success: false });
+        }
+
+        await Squad.findByIdAndUpdate(squad._id, {
+            $addToSet: { members: { user: userId, role: 'member' } }
+        });
+
+        await User.findByIdAndUpdate(userId, {
+            $addToSet: { squads: squad._id }
+        });
+
+        return res.status(200).json({ 
+            message: "Squad joined successfully!", 
+            success: true, 
+            squadId: squad._id 
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "failed to add to squad", success: false });
+    }
+}
+
+export const DirectAddToSquad = async(req,res)=>{
+    try {
+        
+    } catch (error) {
+        
     }
 }
